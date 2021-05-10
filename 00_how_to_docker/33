@@ -1,0 +1,27 @@
+#!/bin/bash
+
+IMAGE_NAME="Char"
+
+if [[ $1 ]];then
+    if [[ "$1" = "all" || "$1" = "a" ]];then
+        if [[ -n $(docker ps -a -q) ]];then
+            echo "deleting all containers:"
+            docker stop $(docker ps -a -q) > /dev/null
+            docker rm $(docker ps -a -q)
+        fi
+        if [[ -n $(docker images -q) ]];then
+            echo "deleting all images:"
+            docker rmi $(docker images -q)
+        fi
+    fi
+else
+    if docker images | grep -qw $IMAGE_NAME;then
+        if docker ps -a | grep -qw $IMAGE_NAME;then # если нашли созданные контейнеры, которые основаны на этом образе
+            echo "deleting all containers based on $IMAGE_NAME image:"
+            docker stop $(docker ps -a | grep -w $IMAGE_NAME | awk -v n=1 '{print $n}') >> /dev/null
+            docker rm $(docker ps -a | grep -w $IMAGE_NAME | awk -v n=1 '{print $n}')
+        fi
+        echo "deleting docker image named $IMAGE_NAME:"
+        docker rmi $(docker images | grep -w $IMAGE_NAME | awk -v n=3 '{print $n}')
+    fi
+fi
